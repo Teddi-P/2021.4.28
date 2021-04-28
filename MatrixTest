@@ -1,0 +1,71 @@
+import org.junit.Test;
+import org.junit.Before;
+
+import static org.junit.Assert.*;
+public class MatrixTest {
+    Matrix matrix1;
+    int size;
+
+    @Before
+    public void creatMatrix1(){
+        size=3;
+        int[][] map={{1,2,3},{4,5,6},{7,8,9}};
+        matrix1=new Matrix(size,map);
+    }
+
+    @Test(timeout = 1000)
+    public void test1(){
+        Matrix matrix2=new Matrix(size);
+        Matrix matrix=new Matrix();
+        matrix2.setElement(0,0,1);
+        matrix2.setElement(1,1,1);
+        matrix2.setElement(2,2,1);
+        Matrix ans=matrix.multiply(matrix1,matrix2);
+        int[] temp={1,2,3,4,5,6,7,8,9};
+        for (int i = 0; i <9 ; i++) {
+            assertEquals(temp[i],ans.getElement(i));
+        }
+    }
+
+    @Test(timeout = 1000)
+    public void test2(){
+        size=2;
+        int[][] map2={{1,2},{3,4}};
+        Matrix matrix1=new Matrix(size,map2);
+        Matrix matrix2=new Matrix(size);
+        Matrix matrix=new Matrix();
+        matrix2.setElement(0,0,1);
+        matrix2.setElement(1,1,1);
+        Matrix ans=matrix.multiply(matrix1,matrix2);
+        int[] temp={1,2,3,4};
+        for (int i = 0; i <4 ; i++) {
+            assertEquals(temp[i],ans.getElement(i));
+        }
+    }
+    @Test(timeout = 1000)
+    public void test3(){
+        size=4;
+        int[][] map2={{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}};
+        Matrix matrix=new Matrix();
+        Matrix matrix1=new Matrix(size,map2);
+        Matrix ans=matrix.multiply(matrix1,matrix1);
+        Matrix what=new Matrix();
+        Matrix test=what.Strassen(matrix1,matrix1);
+        for (int i = 0; i <matrix1.size ; i++) {
+            assertEquals(test.getElement(i),ans.getElement(i));
+        }
+    }
+    @Test(timeout = 1000)
+    public void test5(){
+        size=2;
+        int[][] map2={{1,2},{3,4}};
+        Matrix matrix1=new Matrix(size,map2);
+        Matrix matrix=new Matrix();
+        Matrix ans=matrix.multiply(matrix1,matrix1);
+        Matrix what=new Matrix();
+        Matrix test=what.Strassen(matrix1,matrix1);
+        for (int i = 0; i <matrix1.size ; i++) {
+            assertEquals(test.getElement(i),ans.getElement(i));
+        }
+    }
+}
