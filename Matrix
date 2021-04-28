@@ -1,0 +1,154 @@
+import com.sun.org.apache.xpath.internal.operations.Mult;
+
+public class Matrix {
+    int size;
+    int row;
+    int col;
+    private int[][] map;
+
+    Matrix() {
+    }
+
+    Matrix(int size) {
+        this.size = size;
+        map = new int[size][size];
+    }
+
+    Matrix(int size, int[][] map) {
+        this.size = size;
+        this.map = map;
+    }
+
+    public void setElement(int row, int col, int value) {
+        map[row][col] = value;
+    }
+
+    public int getElement(int row, int col) {
+        return map[row][col];
+    }
+
+    public int getElement(int index) {
+        return map[index / size][index % size];
+    }
+
+    public Matrix addition(Matrix a, Matrix b) {
+        int[][] ans = new int[a.size][a.size];
+        for (int i = 0; i < a.size; i++) {
+            for (int j = 0; j < a.size; j++) {
+                ans[i][j] = b.map[i][j] + a.map[i][j];
+            }
+        }
+        return new Matrix(a.size, ans);
+    }
+
+    public Matrix subtraction(Matrix a, Matrix b) {
+        int[][] ans = new int[a.size][a.size];
+        for (int i = 0; i < a.size; i++) {
+            for (int j = 0; j < a.size; j++) {
+                ans[i][j] = a.map[i][j] - b.map[i][j];
+            }
+        }
+        return new Matrix(a.size, ans);
+    }
+
+    public Matrix multiply(Matrix a,Matrix b) {
+        ///to be exam
+        //determine weather to use Strassen
+        if (Adaptive_Mutiply(a,b)){
+            Matrix matrix = new Matrix(a.size);
+            matrix=Strassen(a,b);
+            return matrix;
+        }
+        ////
+        Matrix ans = new Matrix(a.size);
+        for (int i = 0; i < a.size; i++) {
+            for (int j = 0; j <a.size; j++) {
+                int temp = 0;
+                for (int k = 0; k < a.size; k++) {
+                    temp += b.getElement(i, k) * a.getElement(k, j);
+                }
+                ans.setElement(i, j, temp);
+            }
+        }
+        return ans;
+    }
+
+
+    public Matrix Strassen(Matrix a, Matrix b) {
+        ///to be exam
+        //determine weather to use Strassen
+        if (!Adaptive_Mutiply(a,b)){
+            Matrix matrix = new Matrix(a.size);
+            matrix=multiply(a,b);
+            return matrix;
+        }
+        ////
+
+        if (a.size == 1) {
+            Matrix matrix = new Matrix(1);
+            matrix.map[0][0] = a.map[0][0] * b.map[0][0];
+            return matrix;
+        } else {
+            //get the sub matrix
+            Matrix a21 = subMatrix(a, 2, 1);
+            Matrix a22 = subMatrix(a, 2, 2);
+            Matrix a11 = subMatrix(a, 1, 1);
+            Matrix a12 = subMatrix(a, 1, 2);
+            Matrix b22 = subMatrix(b, 2, 2);
+            Matrix b12 = subMatrix(b, 1, 2);
+            Matrix b11 = subMatrix(b, 1, 1);
+            Matrix b21 = subMatrix(b, 2, 1);
+
+            //calculate with Strassen;
+            Matrix P1 = Strassen(subtraction(addition(a21, a22), a11), addition(subtraction(b22, b12), b11));
+            Matrix P2 = Strassen(a11, b11);
+            Matrix P3 = Strassen(a12, b21);
+            Matrix P4 = Strassen(subtraction(a11, a21), subtraction(b22, b12));
+            Matrix P5 = Strassen(addition(a21, a22), subtraction(b12, b11));
+            Matrix P6 = Strassen(addition(subtraction(a12, a21), subtraction(a11, a22)), b22);
+            Matrix P7 = Strassen(a22, addition(subtraction(b11, b12), subtraction(b22, b21)));
+
+            //get each part of C;
+            Matrix C11 = addition(P2, P3);
+            Matrix C12 = addition(P1, addition(P2, addition(P5, P6)));
+            Matrix C21 = addition(P1, addition(P2, subtraction(P4, P7)));
+            Matrix C22 = addition(P1, addition(P2, addition(P5, P4)));
+
+            Matrix c = new Matrix(a.size);
+            c.build(C11, C12, C21, C22);
+            return c;
+        }
+    }
+
+    private Matrix subMatrix(Matrix m, int x, int y) {
+        int[][] temp1 = new int[m.size / 2][m.size / 2];
+        for (int i = 0; i < m.size / 2; i++) {
+            for (int j = 0; j < m.size / 2; j++) {
+                temp1[i][j] = m.map[i + (m.size / 2) * (x - 1)][j + (m.size / 2) * (y - 1)];
+            }
+        }
+        return new Matrix(m.size / 2, temp1);
+    }
+
+    private void build(Matrix m11, Matrix m12, Matrix m21, Matrix m22) {
+        for (int i = 0; i < size / 2; i++) {
+            for (int j = 0; j < size / 2; j++) {
+                setElement(i, j, m11.map[i][j]);
+                setElement(i, j + size / 2, m12.map[i][j]);
+                setElement(i + size / 2, j, m21.map[i][j]);
+                setElement(i + size / 2, j + size / 2, m22.map[i][j]);
+            }
+        }
+    }
+
+    public Boolean Adaptive_Mutiply(Matrix matrix, Matrix b) {
+        int s = matrix.size;
+        if (s % 2 == 0 && s > 100) {
+            Strassen(matrix,b);
+            return true;
+        }else {
+            multiply(matrix,b);
+            return false;
+        }
+    }
+}
